@@ -146,7 +146,7 @@ function drawGame() {
     textStyle(BOLD);
     let mins = floor(timeLeft / 60);
     let secs = timeLeft % 60;
-    text(`Time: ${mins}:${secs < 10 ? '0' : ''}${secs}`, width / 2, 40);
+    text(`Time: ${mins}:${secs < 0 ? '0' : ''}${secs}`, width / 2, 40);
     rectMode(CORNER);
 }
 
