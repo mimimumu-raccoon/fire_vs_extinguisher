@@ -11,7 +11,6 @@ let margin = 60;
 let gameState = 'start'; // 'start', 'playing', 'end'
 let timeLeft = 30; // 30 seconds
 let lastSecond = 0;
-
 let colors = [
   "rgb(0, 81, 219)",
   "rgb(0, 128,10)",
@@ -159,53 +158,55 @@ function drawEndScreen() {
     textFont('Figtree')
     textStyle(BOLD);
     text("TIME IS UP", width / 2, 120);
-
     fill(255);
-    textSize(18);
+    textSize(22);
     textStyle(NORMAL);
     textAlign(LEFT, TOP);
-    textLeading(28);
+    textLeading(30);
 
     let leftMargin = max(width/5, width / 2 - 350);
     let topMargin = 200;
-
     text(
-        'This game is a metaphor for the endless war against misinformation.',
+        'Hey! Did this little game make you nervous?',
         leftMargin, topMargin
     );
     text(
-        'One player spreads fire—rumors, lies, conspiracy theories. The other fights\n' +
-        'desperately to extinguish them with truth and verification.',
-        leftMargin+30, topMargin + 40
-    );
+      'Actually, you should!\n'+ 'Because this game is a metaphor for the endless war against misinformation. \n', leftMargin+30, topMargin + 40);
+  
+  fill('#FFEB3B')
+    textSize(18);
+    textStyle(BOLD);
+    textAlign(LEFT, TOP);
+    textLeading(30);
+    text('🔥 set fire, and it spreads, representing rumors, false information even conspiracy theories.\n' +
+        '🧯 desperately to extinguish them with truth and verification.', leftMargin, topMargin + 120
+    )
+  
+  fill(255);
+    textSize(22);
+    textStyle(NORMAL);
+    textAlign(LEFT, TOP);
+    textLeading(30);
     text(
         'But here is the reality: Creating misinformation takes seconds.\n' +
-        'Debunking it takes hours.',
-        leftMargin, topMargin + 120
-    );
-    text(
-        'The fire spreader can create flames faster than they can ever be\n' +
-        'extinguished. New fires ignite while you are still fighting the old ones.',
+        'Debunking it takes forever and it won’t “spread”!',
         leftMargin, topMargin + 200
     );
     text(
-        'You played for 30 seconds. In the real world, this battle never ends.\n' +
-        'Fact-checkers, journalists, and educators fight this war every single\n' +
-        'day—often losing ground.',
+        'Online disinformation poses a significant threat by destroying public trust,\n' + 'polarizing societies, and undermining democratic processes through fake news.\n' +
+        'extinguished. New fires ignite while you are still fighting the old ones.',
         leftMargin, topMargin + 280
     );
-
-    fill(255, 160, 122);
-    textStyle(ITALIC);
     text(
-        'The asymmetry is the point. The exhaustion is the point.\n' +
-        'The feeling that you can never win... is the point.',
+        'As digital citizens, we must be vigilant about every message \n' + 'and take responsibility for verifying every information we spread.\n' +
         leftMargin, topMargin + 390
     );
 
+  
+
     textAlign(CENTER, CENTER);
     // Play Again button
-    fill(78, 205, 196);
+    fill('rgba(255,255,255,0.41)');
     noStroke();
     rectMode(CENTER);
     rect(width / 2, height - 80, 220, 55, 8);
@@ -229,7 +230,7 @@ function updateTimer() {
 
 function startGame() {
     gameState = 'playing';
-    timeLeft = 60;
+    timeLeft = 30;
     lastSecond = floor(millis() / 1000);
     
     boxes = [];
@@ -260,7 +261,6 @@ function mousePressed() {
         }
     }
 }
-
 
 function keyPressed() {
     if (gameState !== 'playing') return;
@@ -438,32 +438,85 @@ class Emitter {
     constructor(x, y) {
         this.position = createVector(x, y);
         this.fire = [];
+
+        this.canSpread = random(1) < 0.5; // 50% 機率蔓延
+        this.spreadCount = 0;
+        this.maxSpread = 2;
+        this.spreadCooldown = 60; // 第一次延遲一點
     }
 
     update() {
-        for (let i = 0; i < 19; i++) {
-            let p = new FireParticle(this.position.x, this.position.y);
-            if (frameCount % 10 === 0) {
+        for (let i = 0; i < 5; i++) {
+            let p = new FireParticle(this.position.x, this.position.y, 1.0);
+            if (frameCount % 2 === 0) {
                 this.fire.push(p);
             }
         }
-        for (let i = 0; i < this.fire.length; i++) {
+                // 更新粒子
+        for (let i = this.fire.length - 1; i >= 0; i--) {
             this.fire[i].update();
             this.fire[i].show();
-            if (this.fire[i].finished()) {
-                this.fire.splice(i, 1);
+            if (this.fire[i].finished()) this.fire.splice(i, 1);
+        }
+
+        // ------------------------
+        //   子火蔓延邏輯
+        // ------------------------
+        if (this.canSpread && this.spreadCount < this.maxSpread) {
+
+            this.spreadCooldown--;
+
+            if (this.spreadCooldown <= 0) {
+                this.spreadCooldown = 90; // 下一次更慢
+
+                emitters.push(new Emitter02(
+                    this.position.x + random(-80, 80),
+                    this.position.y + random(-80, 80),
+                    0.5   // 子火更小
+                ));
+
+                this.spreadCount++;
             }
         }
     }
 }
 
+class Emitter02 {
+    constructor(x, y, scale) {
+        this.position = createVector(x, y);
+        this.fire = [];
+        this.scale = scale;
+      
+    }
+
+    update() {
+        for (let i = 0; i < 5; i++) {
+            if (frameCount % 3 === 0) { // 比原火更慢
+                this.fire.push(new FireParticle(
+                    this.position.x,
+                    this.position.y,
+                    this.scale
+                ));
+            }
+        }
+
+        for (let i = this.fire.length - 1; i >= 0; i--) {
+            this.fire[i].update();
+            this.fire[i].show();
+            if (this.fire[i].finished()) this.fire.splice(i, 1);
+        }
+    }
+}
+
 class FireParticle {
-    constructor(x, y) {
-        this.pos = createVector(x + random(-fireBaseX / 2, fireBaseX / 2), y + random(-fireBaseY, fireBaseY / 2));
+    constructor(x, y, scale = 1) {
+        this.pos = createVector(x + random(fireBaseX / 2), y + random( fireBaseY / 2));
         this.vol = createVector(random(-1, 1), random(-5, -1));
-        this.r = 18;
+        this.r = 30 * scale;      // 根據 scale 變小
+        this.scale = scale;
         this.color = lerpColor(redColor, yellowColor, random(1));
         this.lifetime = 255;
+        this.scale = scale;
     }
 
     finished() {
@@ -474,12 +527,13 @@ class FireParticle {
         noStroke();
         fill(red(this.color), green(this.color), blue(this.color), this.lifetime);
         circle(this.pos.x, this.pos.y, this.r);
+      
     }
 
     update() {
         this.pos.add(this.vol);
         this.lifetime -= 11;
-        this.r += 2;
+        this.r += 2 * this.scale;
     }
 }
     
