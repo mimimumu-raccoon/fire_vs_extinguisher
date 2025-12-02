@@ -9,7 +9,6 @@ let firePlayer;
 let extinguisher;
 let margin = 60;
 let gameState = 'start'; // 'start', 'playing', 'end'
-let timeLeft = 60; // 30 seconds
 let lastSecond = 0;
 let colors = [
   "rgb(0, 81, 219)",
@@ -74,7 +73,7 @@ function drawStartScreen() {
     fill(255);
     textSize(24);
     textStyle(BOLD);
-    text('START', width / 2, height / 2 + 140);
+    text('START', width / 2, height / 2 + 143);
     rectMode(CORNER);
 }
 
@@ -182,7 +181,7 @@ function drawEndScreen() {
       'Actually, you should!\n'+ 'Because this game is a metaphor for the endless war against misinformation. \n', leftMargin+30, topMargin + 40);
   
   fill('#FFEB3B')
-    textSize(18);
+    textSize(19);
     textStyle(BOLD);
     textAlign(LEFT, TOP);
     textLeading(30);
@@ -195,19 +194,16 @@ function drawEndScreen() {
     textStyle(NORMAL);
     textAlign(LEFT, TOP);
     textLeading(30);
-    text(
-        'But here is the reality: Creating misinformation takes seconds.\n' +
-        'Debunking it takes forever and it won’t “spread”!',
-        leftMargin, topMargin + 200
-    );
+    
     text(
         'Online disinformation poses a significant threat by destroying public trust,\n' + 'polarizing societies, and undermining democratic processes through fake news.\n' +
         'extinguished. New fires ignite while you are still fighting the old ones.',
-        leftMargin, topMargin + 280
+        leftMargin, topMargin + 210
     );
+  
     text(
-        'As digital citizens, we must be vigilant about every message \n' + 'and take responsibility for verifying every information we spread.\n' +
-      leftMargin, topMargin + 390
+        'As digital citizens, we must be vigilant about every message \n' + 'and take responsibility for verifying every information we spread.\n' ,
+      leftMargin, topMargin + 330
     );
 
   
@@ -217,11 +213,11 @@ function drawEndScreen() {
     fill('rgba(255,255,255,0.41)');
     noStroke();
     rectMode(CENTER);
-    rect(width / 2, height - 80, 220, 55, 8);
+    rect(width / 2, height - 90, 220, 55, 8);
     fill(255);
     textSize(20);
     textStyle(BOLD);
-    text('Play Again', width / 2, height - 80);
+    text('Play Again', width / 2, height - 90);
     rectMode(CORNER);
 }
 
@@ -238,7 +234,7 @@ function updateTimer() {
 
 function startGame() {
     gameState = 'playing';
-    timeLeft = 60;
+    timeLeft = 1;
     lastSecond = floor(millis() / 1000);
     
     boxes = [];
@@ -505,7 +501,7 @@ class Emitter02 {
 
     update() {
         for (let i = 0; i < 5; i++) {
-            if (frameCount % 3 === 0) { // 比原火更慢
+            if (frameCount % 3 === 0) { 
                 this.fire.push(new FireParticle(
                     this.position.x,
                     this.position.y,
