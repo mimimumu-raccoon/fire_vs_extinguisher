@@ -9,7 +9,7 @@ let firePlayer;
 let extinguisher;
 let margin = 60;
 let gameState = 'start'; // 'start', 'playing', 'end'
-let timeLeft = 30; // 30 seconds
+let timeLeft = 60; // 30 seconds
 let lastSecond = 0;
 let colors = [
   "rgb(0, 81, 219)",
@@ -114,22 +114,30 @@ function drawGame() {
 
     // Show Bubbles and Collisions
     for (let i = bubbles.length - 1; i >= 0; i--) {
-        let bubble = bubbles[i];
-        bubble.update();
-        bubble.show();
+    let bubble = bubbles[i];
+    bubble.update();
+    bubble.show();
 
-        if (bubble.pos.y < 0) {
+    // remove after lifetime
+    if (bubble.isDead()) {
+        bubbles.splice(i, 1);
+        continue;
+    }
+
+    // remove if it floats off screen
+    if (bubble.pos.y < 0) {
+        bubbles.splice(i, 1);
+        continue;
+    }
+
+    // collision with fire
+    for (let j = emitters.length - 1; j >= 0; j--) {
+        if (bubble.hits(emitters[j])) {
+            emitters.splice(j, 1);
             bubbles.splice(i, 1);
-            continue;
+            break;
         }
-
-        for (let j = emitters.length - 1; j >= 0; j--) {
-            if (bubble.hits(emitters[j])) {
-                emitters.splice(j, 1);
-                bubbles.splice(i, 1);
-                break;
-            }
-        }
+    }
     }
 
     if (squeeze) squeeze.update();
@@ -199,7 +207,7 @@ function drawEndScreen() {
     );
     text(
         'As digital citizens, we must be vigilant about every message \n' + 'and take responsibility for verifying every information we spread.\n' +
-        leftMargin, topMargin + 390
+      leftMargin, topMargin + 390
     );
 
   
@@ -230,7 +238,7 @@ function updateTimer() {
 
 function startGame() {
     gameState = 'playing';
-    timeLeft = 30;
+    timeLeft = 60;
     lastSecond = floor(millis() / 1000);
     
     boxes = [];
@@ -415,17 +423,23 @@ class Bubble {
     constructor(x, y) {
         this.pos = createVector(x, y);
         this.vel = createVector(random(-2, 2), random(-6, -4));
-        this.r = random(20, 25);
+        this.r = random(15, 30);
+        this.life = 13;
     }
 
     update() {
         this.pos.add(this.vel);
+         this.life--; 
+    }
+  
+  isDead() {
+        return this.life <= 0;
     }
 
     show() {
         noStroke();
-        fill(255, 255, 255, 220);
-        circle(this.pos.x, this.pos.y, this.r);
+        fill(255, 255, 255, random(180, 255)); // fade out nicely
+        circle(this.pos.x, this.pos.y-25, this.r);
     }
 
     hits(emitter) {
@@ -439,10 +453,10 @@ class Emitter {
         this.position = createVector(x, y);
         this.fire = [];
 
-        this.canSpread = random(1) < 0.5; // 50% 機率蔓延
+        this.canSpread = random(1) < 0.5; // 50% spread
         this.spreadCount = 0;
-        this.maxSpread = 2;
-        this.spreadCooldown = 60; // 第一次延遲一點
+        this.maxSpread = 3;
+        this.spreadCooldown = 60; // delay time
     }
 
     update() {
@@ -452,15 +466,15 @@ class Emitter {
                 this.fire.push(p);
             }
         }
-                // 更新粒子
+              
         for (let i = this.fire.length - 1; i >= 0; i--) {
             this.fire[i].update();
             this.fire[i].show();
-            if (this.fire[i].finished()) this.fire.splice(i, 1);
+            if (this.fire[i].finished())                   this.fire.splice(i, 1);
         }
 
         // ------------------------
-        //   子火蔓延邏輯
+        //   fire spread
         // ------------------------
         if (this.canSpread && this.spreadCount < this.maxSpread) {
 
@@ -470,8 +484,8 @@ class Emitter {
                 this.spreadCooldown = 90; // 下一次更慢
 
                 emitters.push(new Emitter02(
-                    this.position.x + random(-80, 80),
-                    this.position.y + random(-80, 80),
+                    this.position.x + random(-200, 200),
+                    this.position.y + random(-200, 200),
                     0.5   // 子火更小
                 ));
 
