@@ -234,7 +234,7 @@ function updateTimer() {
 
 function startGame() {
     gameState = 'playing';
-    timeLeft = 1;
+    timeLeft = 60;
     lastSecond = floor(millis() / 1000);
     
     boxes = [];
